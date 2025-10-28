@@ -1,0 +1,25 @@
+node_modules/
+
+claudedocs/
+
+coverage/
+
+.env.local
+
+# Build artifacts
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
+# Test reports
+playwright-report/
+test-results/
+
+# Next.js
+.next/
+out/
+
+# OS files
+.DS_Store
+*.swp
+*.swo
+*~
