@@ -329,16 +329,11 @@ export function useCanvasEvents() {
       }
     }
     
-    // Update cursor position for proximity-based anchor visibility
+    // Update cursor position globally for cut/paste and proximity-based anchor visibility
     if (pos) {
       const canvasPos = transformScreenToCanvas(pos.x, pos.y)
-      
-      // Track cursor during connector operations for proximity calculations
-      if (selectedTool === 'line' || (connectorDrag && connectorDrag.isActive)) {
-        setCursorPosition(canvasPos)
-      } else {
-        setCursorPosition(null) // Clear when not in connector mode
-      }
+      // Always track cursor position for features like cut/paste and connector proximity
+      setCursorPosition(canvasPos)
     }
 
     // Enhanced line mode cursor management with connection state awareness

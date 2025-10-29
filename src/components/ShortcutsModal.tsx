@@ -25,9 +25,9 @@ export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
     {
       category: 'Editing',
       items: [
-        { keys: ['Ctrl/Cmd', 'C'], description: 'Copy selected elements' },
-        { keys: ['Ctrl/Cmd', 'X'], description: 'Cut selected elements' },
-        { keys: ['Ctrl/Cmd', 'V'], description: 'Paste elements' },
+        { keys: ['Ctrl/Cmd', 'C'], description: 'Copy elements' },
+        { keys: ['Ctrl/Cmd', 'X'], description: 'Cut elements' },
+        { keys: ['Ctrl/Cmd', 'V'], description: 'Paste at cursor position' },
         { keys: ['Delete'], description: 'Delete selected elements' },
         { keys: ['Backspace'], description: 'Delete selected elements' },
         { keys: ['Enter'], description: 'Edit text element' },

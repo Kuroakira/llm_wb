@@ -1124,30 +1124,75 @@ export const useBoardStore = create<BoardStore>()(
     },
 
     cutSelected: () => {
-      const { selectedIds, copySelected, deleteElements } = get()
+      const { selectedIds, elements, connectors, deleteElements } = get()
 
       if (selectedIds.length === 0) return
 
-      // Copy first
-      copySelected()
+      // Copy selected elements
+      const selectedElements = elements.filter(el => selectedIds.includes(el.id))
+
+      // Copy connectors that connect selected elements
+      const selectedConnectors = connectors.filter(conn =>
+        selectedIds.includes(conn.fromId) && selectedIds.includes(conn.toId)
+      )
+
+      // Mark as cut operation
+      set((state) => {
+        state.clipboard = {
+          elements: deepClone(selectedElements),
+          connectors: deepClone(selectedConnectors)
+        }
+      })
 
       // Then delete
       deleteElements(selectedIds)
     },
 
     paste: () => {
-      const { clipboard } = get()
+      const { clipboard, cursorPosition } = get()
+
+      console.log('[Clipboard] Paste - cursorPosition:', cursorPosition)
 
       if (clipboard.elements.length === 0) return
 
       // Save history before paste
       pushHistorySnapshot(get, set)
 
+      // Calculate position offset
+      let offsetX: number, offsetY: number
+
+      if (cursorPosition) {
+        // Paste at cursor position (for both copy and cut)
+        // Calculate the center of the clipboard elements
+        const bounds = clipboard.elements.reduce((acc, el) => ({
+          minX: Math.min(acc.minX, el.x),
+          minY: Math.min(acc.minY, el.y),
+          maxX: Math.max(acc.maxX, el.x + el.width),
+          maxY: Math.max(acc.maxY, el.y + el.height)
+        }), {
+          minX: Infinity,
+          minY: Infinity,
+          maxX: -Infinity,
+          maxY: -Infinity
+        })
+
+        const centerX = (bounds.minX + bounds.maxX) / 2
+        const centerY = (bounds.minY + bounds.maxY) / 2
+
+        // Place center of elements at cursor position
+        offsetX = cursorPosition.x - centerX
+        offsetY = cursorPosition.y - centerY
+      } else {
+        // Fallback: paste with 10px offset if cursor position not available
+        offsetX = 10
+        offsetY = 10
+      }
+
       // Create ID mapping for new elements
       const idMap = new Map<ElementID, ElementID>()
       const newElements: CanvasElement[] = []
 
-      // Create new elements with offset (10px right, 10px down)
+      // Create new elements with calculated offset
       clipboard.elements.forEach(el => {
         const newId = nanoid()
         idMap.set(el.id, newId)
@@ -1156,8 +1201,8 @@ export const useBoardStore = create<BoardStore>()(
         const newElement: CanvasElement = {
           ...deepClone(el),
           id: newId,
-          x: el.x + 10,
-          y: el.y + 10,
+          x: el.x + offsetX,
+          y: el.y + offsetY,
           zIndex: get().getNextZIndex(),
           createdAt: now,
           updatedAt: now
