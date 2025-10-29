@@ -2,7 +2,7 @@
 
 A collaborative whiteboard web application with integrated LLM assistance, inspired by Figma and Miro. Create sticky notes, text boxes, shapes, and connect them with lines—all while leveraging AI to brainstorm and organize ideas.
 
-![Demo](https://github.com/Kuroakira/llm_wb/blob/main/llm_wb_demo.mov)
+![Demo](https://github.com/Kuroakira/llm_wb/blob/main/llm_wb_demo.gif)
 
 ## ✨ Features
 
@@ -26,8 +26,6 @@ A collaborative whiteboard web application with integrated LLM assistance, inspi
 - **Keyboard Shortcuts**: Delete, Undo/Redo, and tool switching
 
 ## 🎥 How to Use
-
-https://github.com/user-attachments/assets/llm_wb_demo.mov
 
 ### Basic Workflow
 
