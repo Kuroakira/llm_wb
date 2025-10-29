@@ -755,7 +755,7 @@ export function LeftChatPanel({ isCollapsed = false, onToggleCollapse }: LeftCha
       >
           {messages.length === 0 ? (
             <div style={{
-              textAlign: 'center',
+              textAlign: 'left',
               color: '#888888',
               fontSize: '14px',
               lineHeight: '1.6'
