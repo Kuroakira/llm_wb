@@ -4,8 +4,10 @@ import React, { useEffect, useState } from 'react'
 import { Toolbar } from '@/canvas/tools/Toolbar'
 import { LeftChatPanel } from '@/canvas/tools/LeftChatPanel'
 import { CanvasStage } from '@/canvas/CanvasStage'
+import { ShortcutsModal } from '@/components/ShortcutsModal'
 import { useBoardStore } from '@/store/boardStore'
 import { useGlobalZoomControl } from '@/hooks/useGlobalZoomControl'
+import { shouldAllowNativeKeyboard } from '@/lib/keyboard-utils'
 
 
 export default function Home() {
@@ -13,6 +15,7 @@ export default function Home() {
   const [canvasSize, setCanvasSize] = useState({ width: 1280, height: 720 })
   const [isClient, setIsClient] = useState(false)
   const [isChatCollapsed, setIsChatCollapsed] = useState(false)
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false)
   const loadFromStorage = useBoardStore(state => state.loadFromStorage)
   const viewport = useBoardStore(state => state.viewport)
 
@@ -59,6 +62,33 @@ export default function Home() {
     // Restore board data and viewport
     loadFromStorage()
   }, [isClient, loadFromStorage])
+
+  // Keyboard shortcut to open shortcuts modal (?)
+  useEffect(() => {
+    if (!isClient) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Allow native keyboard in input fields
+      if (shouldAllowNativeKeyboard(e)) {
+        return
+      }
+
+      // Open shortcuts modal with "?" key (Shift + /)
+      if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault()
+        setIsShortcutsOpen(true)
+      }
+
+      // Close shortcuts modal with Escape
+      if (e.key === 'Escape' && isShortcutsOpen) {
+        e.preventDefault()
+        setIsShortcutsOpen(false)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isClient, isShortcutsOpen])
 
   return (
     <div style={{ position: 'relative', height: '100vh', width: '100vw' }}>
@@ -115,6 +145,14 @@ export default function Home() {
         }}>
           <Toolbar />
         </div>
+      )}
+
+      {/* Keyboard Shortcuts Modal */}
+      {isClient && (
+        <ShortcutsModal
+          isOpen={isShortcutsOpen}
+          onClose={() => setIsShortcutsOpen(false)}
+        />
       )}
     </div>
   )

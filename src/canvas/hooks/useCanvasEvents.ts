@@ -27,6 +27,9 @@ export function useCanvasEvents() {
     cancelConnection,
     undo,
     redo,
+    copySelected,
+    cutSelected,
+    paste,
     setPan,
     bringToFront,
     sendToBack,
@@ -502,6 +505,32 @@ export function useCanvasEvents() {
         return
       }
 
+      // Copy: Ctrl/Cmd + C
+      if (e.key === 'c' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault()
+        console.log('[Clipboard] Copy triggered, selectedIds:', useBoardStore.getState().selectedIds)
+        copySelected()
+        console.log('[Clipboard] Clipboard after copy:', useBoardStore.getState().clipboard)
+        return
+      }
+
+      // Cut: Ctrl/Cmd + X
+      if (e.key === 'x' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault()
+        console.log('[Clipboard] Cut triggered, selectedIds:', useBoardStore.getState().selectedIds)
+        cutSelected()
+        return
+      }
+
+      // Paste: Ctrl/Cmd + V
+      if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault()
+        console.log('[Clipboard] Paste triggered, clipboard:', useBoardStore.getState().clipboard)
+        paste()
+        console.log('[Clipboard] Elements after paste:', useBoardStore.getState().elements.length)
+        return
+      }
+
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault()
         const { selectedIds, selectedConnectorIds, deleteElements, deleteConnector, clearSelection } = useBoardStore.getState()
@@ -545,7 +574,7 @@ export function useCanvasEvents() {
       document.removeEventListener('keydown', handleKeyDown)
       document.removeEventListener('keyup', handleKeyUp)
     }
-  }, [connectors, editorState.isVisible, elements, deleteElement, deleteConnector, updateElement, undo, redo, bringToFront, sendToBack, isSpacebarPanning, previousTool])
+  }, [connectors, editorState.isVisible, elements, deleteElement, deleteConnector, updateElement, undo, redo, copySelected, cutSelected, paste, bringToFront, sendToBack, isSpacebarPanning, previousTool])
 
   const handleStageClick = (e: any) => {
     // ダブルクリック後200ms以内のクリックは無視

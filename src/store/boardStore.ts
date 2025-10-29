@@ -48,6 +48,12 @@ type BoardStore = {
   // Main theme
   mainTheme: MainTheme | null
 
+  // Clipboard
+  clipboard: {
+    elements: CanvasElement[]
+    connectors: Connector[]
+  }
+
   // Basic actions
   addElement: (element: Omit<CanvasElement, 'id' | 'createdAt' | 'updatedAt' | 'zIndex'>) => string
   updateElement: (id: ElementID, updates: Partial<CanvasElement>, skipConnectorUpdate?: boolean, skipHistory?: boolean) => void
@@ -146,6 +152,11 @@ type BoardStore = {
   updateMainTheme: (content: string) => void
   removeMainTheme: () => void
   getMainTheme: () => MainTheme | null
+
+  // Clipboard operations
+  copySelected: () => void
+  cutSelected: () => void
+  paste: () => void
 }
 
 // Performance optimization: Create store with devtools and subscribeWithSelector middleware
@@ -172,6 +183,7 @@ export const useBoardStore = create<BoardStore>()(
     connectionMode: { isActive: false, fromElementId: null, fromAnchor: null },
     chatHistory: [],
     mainTheme: null,
+    clipboard: { elements: [], connectors: [] },
 
     // Add element
     addElement: (elementData) => {
@@ -1087,6 +1099,114 @@ export const useBoardStore = create<BoardStore>()(
 
     getMainTheme: () => {
       return get().mainTheme
+    },
+
+    // Clipboard operations
+    copySelected: () => {
+      const { selectedIds, elements, connectors } = get()
+
+      if (selectedIds.length === 0) return
+
+      // Copy selected elements
+      const selectedElements = elements.filter(el => selectedIds.includes(el.id))
+
+      // Copy connectors that connect selected elements
+      const selectedConnectors = connectors.filter(conn =>
+        selectedIds.includes(conn.fromId) && selectedIds.includes(conn.toId)
+      )
+
+      set((state) => {
+        state.clipboard = {
+          elements: deepClone(selectedElements),
+          connectors: deepClone(selectedConnectors)
+        }
+      })
+    },
+
+    cutSelected: () => {
+      const { selectedIds, copySelected, deleteElements } = get()
+
+      if (selectedIds.length === 0) return
+
+      // Copy first
+      copySelected()
+
+      // Then delete
+      deleteElements(selectedIds)
+    },
+
+    paste: () => {
+      const { clipboard } = get()
+
+      if (clipboard.elements.length === 0) return
+
+      // Save history before paste
+      pushHistorySnapshot(get, set)
+
+      // Create ID mapping for new elements
+      const idMap = new Map<ElementID, ElementID>()
+      const newElements: CanvasElement[] = []
+
+      // Create new elements with offset (10px right, 10px down)
+      clipboard.elements.forEach(el => {
+        const newId = nanoid()
+        idMap.set(el.id, newId)
+
+        const now = Date.now()
+        const newElement: CanvasElement = {
+          ...deepClone(el),
+          id: newId,
+          x: el.x + 10,
+          y: el.y + 10,
+          zIndex: get().getNextZIndex(),
+          createdAt: now,
+          updatedAt: now
+        }
+        newElements.push(newElement)
+      })
+
+      // Create new connectors with updated IDs
+      const newConnectors: Connector[] = []
+      clipboard.connectors.forEach(conn => {
+        const newFromId = idMap.get(conn.fromId)
+        const newToId = idMap.get(conn.toId)
+
+        if (newFromId && newToId) {
+          const now = Date.now()
+          const newConnector: Connector = {
+            ...deepClone(conn),
+            id: nanoid(),
+            fromId: newFromId,
+            toId: newToId,
+            zIndex: get().getNextZIndex(),
+            createdAt: now,
+            updatedAt: now
+          }
+
+          // Recalculate connector points based on new element positions
+          const fromElement = newElements.find(e => e.id === newFromId)
+          const toElement = newElements.find(e => e.id === newToId)
+
+          if (fromElement && toElement && newConnector.fromAnchor && newConnector.toAnchor) {
+            const fromPoint = getAnchorPoint(fromElement, newConnector.fromAnchor)
+            const toPoint = getAnchorPoint(toElement, newConnector.toAnchor)
+            newConnector.points = [fromPoint.x, fromPoint.y, toPoint.x, toPoint.y]
+          }
+
+          newConnectors.push(newConnector)
+        }
+      })
+
+      // Add new elements and connectors to state
+      set((state) => {
+        state.elements.push(...newElements)
+        state.connectors.push(...newConnectors)
+
+        // Select newly pasted elements
+        state.selectedIds = newElements.map(e => e.id)
+      })
+
+      get()._triggerAutoSave()
     }
   }))
 )

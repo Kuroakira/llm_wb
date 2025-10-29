@@ -220,4 +220,89 @@ test.describe('Clipboard Functionality', () => {
       await expect(contentEditableDiv).toContainText('ContentEditable test')
     }
   })
+
+  test('should copy and paste canvas elements with 10px offset', async ({ page }) => {
+    // Create a sticky note
+    await page.getByRole('button', { name: 'Sticky' }).click()
+    await page.getByTestId('canvas').click({ position: { x: 200, y: 200 } })
+
+    // Wait for sticky note to appear
+    const sticky = page.locator('[data-testid="sticky"]').first()
+    await expect(sticky).toBeVisible()
+
+    // Click to select the sticky
+    await page.getByRole('button', { name: 'Select' }).click()
+    await sticky.click()
+    await page.waitForTimeout(200)
+
+    // Copy with Ctrl+C
+    await page.keyboard.press('Control+c')
+    await page.waitForTimeout(100)
+
+    // Paste with Ctrl+V
+    await page.keyboard.press('Control+v')
+    await page.waitForTimeout(300)
+
+    // Should now have 2 sticky notes
+    const stickies = page.locator('[data-testid="sticky"]')
+    await expect(stickies).toHaveCount(2)
+  })
+
+  test('should cut and paste canvas elements', async ({ page }) => {
+    // Create a sticky note
+    await page.getByRole('button', { name: 'Sticky' }).click()
+    await page.getByTestId('canvas').click({ position: { x: 250, y: 250 } })
+
+    // Wait for sticky note to appear
+    const sticky = page.locator('[data-testid="sticky"]').first()
+    await expect(sticky).toBeVisible()
+
+    // Select it
+    await page.getByRole('button', { name: 'Select' }).click()
+    await sticky.click()
+    await page.waitForTimeout(200)
+
+    // Cut with Ctrl+X
+    await page.keyboard.press('Control+x')
+    await page.waitForTimeout(200)
+
+    // Original should be gone
+    await expect(page.locator('[data-testid="sticky"]')).toHaveCount(0)
+
+    // Paste with Ctrl+V
+    await page.keyboard.press('Control+v')
+    await page.waitForTimeout(300)
+
+    // Should have 1 sticky note again
+    await expect(page.locator('[data-testid="sticky"]')).toHaveCount(1)
+  })
+
+  test('should paste multiple times creating multiple copies', async ({ page }) => {
+    // Create and select a sticky note
+    await page.getByRole('button', { name: 'Sticky' }).click()
+    await page.getByTestId('canvas').click({ position: { x: 300, y: 300 } })
+
+    const sticky = page.locator('[data-testid="sticky"]').first()
+    await expect(sticky).toBeVisible()
+
+    // Select it
+    await page.getByRole('button', { name: 'Select' }).click()
+    await sticky.click()
+    await page.waitForTimeout(200)
+
+    // Copy once
+    await page.keyboard.press('Control+c')
+    await page.waitForTimeout(100)
+
+    // Paste 3 times
+    await page.keyboard.press('Control+v')
+    await page.waitForTimeout(200)
+    await page.keyboard.press('Control+v')
+    await page.waitForTimeout(200)
+    await page.keyboard.press('Control+v')
+    await page.waitForTimeout(200)
+
+    // Should have 4 sticky notes total (1 original + 3 pastes)
+    await expect(page.locator('[data-testid="sticky"]')).toHaveCount(4)
+  })
 })

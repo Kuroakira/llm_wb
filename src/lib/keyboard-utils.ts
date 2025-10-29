@@ -42,17 +42,18 @@ export function shouldAllowNativeKeyboard(event: KeyboardEvent): boolean {
   const target = event.target as Element
   const isInInputField = isInputElement(target)
   const isClipboard = isClipboardOperation(event)
-  
-  // Always allow clipboard operations everywhere
-  if (isClipboard) {
+
+  // Allow clipboard operations ONLY in input fields
+  // This lets canvas clipboard work for elements, but preserves text editing
+  if (isClipboard && isInInputField) {
     return true
   }
-  
+
   // Allow all keyboard operations in input fields
   if (isInInputField) {
     return true
   }
-  
+
   return false
 }
 

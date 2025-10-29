@@ -6,7 +6,7 @@ import { Tooltip } from '@/components/Tooltip'
 import type { Tool } from '@/types'
 import { createModuleLogger } from '@/lib/logger'
 import { CiLocationArrow1, CiImageOn } from 'react-icons/ci'
-import { FaLongArrowAltRight, FaHandPaper } from 'react-icons/fa'
+import { FaLongArrowAltRight, FaHandPaper, FaKeyboard } from 'react-icons/fa'
 import { IoText, IoSquareOutline } from 'react-icons/io5'
 import { RiStickyNoteAddLine } from 'react-icons/ri'
 
@@ -371,6 +371,49 @@ export function Toolbar() {
           }}
         >
           ⌂
+        </button>
+      </Tooltip>
+
+      {/* Separator */}
+      <div style={{
+        width: '1px',
+        height: '24px',
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        margin: '0 4px'
+      }} />
+
+      {/* Keyboard Shortcuts Button */}
+      <Tooltip text="Keyboard Shortcuts (?)" position="top" delay={500}>
+        <button
+          data-testid="tool-shortcuts"
+          onClick={() => {
+            // Trigger keyboard event to open shortcuts modal
+            const event = new KeyboardEvent('keydown', { key: '?' })
+            document.dispatchEvent(event)
+          }}
+          style={{
+            width: '36px',
+            height: '36px',
+            border: 'none',
+            borderRadius: '6px',
+            backgroundColor: 'transparent',
+            color: '#CCCCCC',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '16px',
+            transition: 'all 0.2s ease',
+            fontFamily: 'system-ui, -apple-system, sans-serif'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }}
+        >
+          <FaKeyboard />
         </button>
       </Tooltip>
     </div>
