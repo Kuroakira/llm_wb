@@ -983,22 +983,39 @@ export function useCanvasEvents() {
     }
   }
 
-  // 線モード時のキャンセル処理（Escapeキー）
+  // ESC key handling: cancel operations and return to select mode
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && selectedTool === 'line' && connectionMode.isActive) {
-        cancelConnection()
-        try { 
-          useBoardStore.getState().setConnectorHoverTarget(null) 
-          setCursorPosition(null) // Clear cursor position on escape
-        } catch {}
-      }
-      if (e.key === 'Escape' && connectorDrag.isActive) {
-        endConnectorDrag()
-        try { 
-          useBoardStore.getState().setConnectorHoverTarget(null) 
-          setCursorPosition(null) // Clear cursor position on escape
-        } catch {}
+      if (e.key === 'Escape') {
+        const { selectTool, editingTextId } = useBoardStore.getState()
+
+        // Don't interrupt text editing
+        if (editingTextId) {
+          return
+        }
+
+        // Cancel line mode connection if active
+        if (selectedTool === 'line' && connectionMode.isActive) {
+          cancelConnection()
+          try {
+            useBoardStore.getState().setConnectorHoverTarget(null)
+            setCursorPosition(null)
+          } catch {}
+        }
+
+        // Cancel connector drag if active
+        if (connectorDrag.isActive) {
+          endConnectorDrag()
+          try {
+            useBoardStore.getState().setConnectorHoverTarget(null)
+            setCursorPosition(null)
+          } catch {}
+        }
+
+        // Always return to select mode after canceling operations
+        if (selectedTool !== 'select') {
+          selectTool('select')
+        }
       }
     }
 

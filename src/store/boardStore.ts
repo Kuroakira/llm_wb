@@ -257,6 +257,10 @@ export const useBoardStore = create<BoardStore>()(
       const { cancelConnection, endConnectorDrag, connectorDrag, setConnectorHoverTarget } = get()
       set((state) => {
         state.selectedTool = tool
+        // Switch to select mode when select tool is chosen
+        if (tool === 'select') {
+          state.mode = 'select'
+        }
       })
       // Reset guide lines and drag state when tool changes
       if (tool !== 'line') {
@@ -1247,8 +1251,10 @@ export const useBoardStore = create<BoardStore>()(
         state.elements.push(...newElements)
         state.connectors.push(...newConnectors)
 
-        // Select newly pasted elements
+        // Select newly pasted elements and switch to select mode
         state.selectedIds = newElements.map(e => e.id)
+        state.selectedTool = 'select'
+        state.mode = 'select'
       })
 
       get()._triggerAutoSave()
